@@ -1,5 +1,5 @@
 # react-blog-mantap
-Aplikasi blog sederhana menggunakan react dan supabase.
+Aplikasi blog sederhana menggunakan react, flowbite dan supabase.
 
 Preview:
 ![React blog mantap anjay](https://i.imgur.com/tK74pJk.png)
