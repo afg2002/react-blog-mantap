@@ -1,0 +1,21 @@
+.Navbar{
+    background-color: black;
+    color: aliceblue;
+    /* padding: 5px; */
+}
+
+.Navbar ul li{
+    display: inline;
+}
+
+@media only screen and (min-width:768px){
+    .Navbar ul li{
+        padding: 10px;
+    }    
+}
+
+@media only screen and (max-width:768px){
+    .Navbar ul li{
+        padding: 5px;
+    }    
+}
