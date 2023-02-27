@@ -1,5 +1,5 @@
 # react-blog-mantap
-Aplikasi blog sederhana menggunakan react, daisyUI dan supabase.
+Aplikasi blog sederhana menggunakan ReactJS, DaisyUI dan Supabase. 
 
 Preview:
 ![React blog mantap anjay](https://i.ibb.co/BNzHvsh/Screenshot-2023-02-28-00-45-06.png)
