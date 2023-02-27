@@ -1,14 +1,11 @@
 import {React,Fragment} from 'react';
-import { Button } from 'flowbite-react';
+import {button} from 'daisyui'
 
 const ModalSign = () => {
-    return (<div className='flex flex-row gap-2'>
-        <Button color={'gray'}>
-            Sign up
-        </Button>
-        <Button color={'gray'}>
-            Sign in
-        </Button>
+    return (
+    <div className='flex flex-row gap-2'>
+        <button className="btn btn-outline btn-info">Sign up</button>
+        <button className="btn btn-outline btn-accent">Sign in</button>
     </div>
     );
 };
