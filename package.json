@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.8.0",
+    "daisyui": "^2.51.2",
     "dotenv": "^16.0.3",
     "env-cmd": "^10.1.0",
     "flowbite": "^1.6.3",
