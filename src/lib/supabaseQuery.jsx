@@ -23,3 +23,9 @@ export const getPostsByCategory = async (category) =>{
 
   return data;
 }
+
+export const registerUser = async (data) => {
+  const {error} = await supabase
+  .from('users')
+  .insert({data})
+}
