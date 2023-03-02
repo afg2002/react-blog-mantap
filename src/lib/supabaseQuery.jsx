@@ -1,7 +1,9 @@
+import React,{ createContext,useContext } from "react";
 import {supabase} from "./supabase"
 
+
 export const getAllPosts = async () =>{
-    const { data, error } = await supabase
+  const { data, error } = await supabase
     .from('posts')
     .select('*, users(name)')
   if (error) {
@@ -11,8 +13,8 @@ export const getAllPosts = async () =>{
   return data;
 }
 
+
 export const getPostsByCategory = async (category) =>{
-  console.log(category)
   const { data, error } = await supabase
     .from('posts')
     .select('*,users(name)')
@@ -27,5 +29,19 @@ export const getPostsByCategory = async (category) =>{
 export const registerUser = async (data) => {
   const {error} = await supabase
   .from('users')
-  .insert({data})
+  .insert(data)
+  if (error) throw new Error(error.message);
+}
+
+export const loginUser = async (d) =>{
+  const { data, error } = await supabase
+    .from('users')
+    .select('email,name')
+    .eq('email',d.email)
+    .eq('password',d.password)
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
 }

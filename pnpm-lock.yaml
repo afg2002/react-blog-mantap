@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@risingstack/react-easy-state': ^6.3.0
   '@supabase/supabase-js': ^2.8.0
   '@types/react': ^18.0.27
   '@types/react-dom': ^18.0.10
@@ -19,9 +20,11 @@ specifiers:
   react-router-dom: ^6.8.1
   sort-by: ^1.2.0
   tailwindcss: ^3.2.7
+  use-between: ^1.3.5
   vite: ^4.1.0
 
 dependencies:
+  '@risingstack/react-easy-state': 6.3.0_react@18.2.0
   '@supabase/supabase-js': 2.8.0
   daisyui: 2.51.2_gbtt6ss3tbiz4yjtvdr6fbrj44
   dotenv: 16.0.3
@@ -34,6 +37,7 @@ dependencies:
   react-dom: 18.2.0_react@18.2.0
   react-router-dom: 6.8.1_biqbaboplfbrettd7655fr4n2y
   sort-by: 1.2.0
+  use-between: 1.3.5_react@18.2.0
 
 devDependencies:
   '@types/react': 18.0.28
@@ -571,6 +575,11 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
+  /@nx-js/observer-util/4.2.2:
+    resolution: {integrity: sha512-9OayX1xkdGjdnsDiO2YdaYJ6aMyCF7/NY4QWVgIgjSAZJ4OX2fD766Ts79hEzBscenQy2DCaSoY8VkguIMB1ZA==}
+    engines: {node: '>=6.5.0'}
+    dev: false
+
   /@popperjs/core/2.11.6:
     resolution: {integrity: sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==}
     dev: false
@@ -578,6 +587,16 @@ packages:
   /@remix-run/router/1.3.2:
     resolution: {integrity: sha512-t54ONhl/h75X94SWsHGQ4G/ZrCEguKSRQr7DrjTciJXW0YU1QhlwYeycvK5JgkzlxmvrK7wq1NB/PLtHxoiDcA==}
     engines: {node: '>=14'}
+    dev: false
+
+  /@risingstack/react-easy-state/6.3.0_react@18.2.0:
+    resolution: {integrity: sha512-AGLrzvwloZL7dgagwRkxJaq7bcDsOGdHrCpHZIlMIxcFLdFr5IpD2/kcmTlC34H682pvfIl1lzNxBw72la10aA==}
+    engines: {node: '>=6.0.0'}
+    peerDependencies:
+      react: '*'
+    dependencies:
+      '@nx-js/observer-util': 4.2.2
+      react: 18.2.0
     dev: false
 
   /@supabase/functions-js/2.0.0:
@@ -1633,6 +1652,14 @@ packages:
       browserslist: 4.21.5
       escalade: 3.1.1
       picocolors: 1.0.0
+
+  /use-between/1.3.5_react@18.2.0:
+    resolution: {integrity: sha512-IP9eJfszZr0aah/6i/pzaM7n/QgMPwWKJ+mnWqT5O0qFhLnztPbkVC6L7zI6ygeBIMJHfmUGvsw0b28pyrEGSA==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /utf-8-validate/5.0.10:
     resolution: {integrity: sha512-Z6czzLq4u8fPOyx7TU6X3dvUZVvoJmxSQ+IcrlmagKhilxlhZgxPK6C5Jqbkw1IDUmFTM+cz9QDnnLTwDz/2gQ==}

@@ -1,18 +1,143 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import { Link } from 'react-router-dom';
-import ButtonSign from './ButtonSign';
+import { view } from '@risingstack/react-easy-state';
+import { loginUser,registerUser } from '../lib/supabaseQuery';
+import { ErrorMessage, BerhasilDaftar } from './Message';
 
 
-const Navbar = () => {
-    const [theme, setTheme] = React.useState('light');
+const Navbar = view(() => {
+    const [theme, setTheme] = useState('light');
     const toggleTheme = () => {
       setTheme(theme === 'dark' ? 'light' : 'dark');
     };
-    // initially set the theme and "listen" for changes to apply them to the HTML tag
-    React.useEffect(() => {
+    
+    useEffect(() => {
       document.querySelector('html').setAttribute('data-theme', theme);
     }, [theme]);
+    
+    // Modal
+    const [isSignIn, setIsSignIn] = useState(true)
 
+    const tempUserLoginData = {
+      email : '',
+      name : '',
+      isLogin : false,
+    }
+
+    const [userLoginData,setUserLoginData] = useState({
+      email : '',
+      name : '',
+      isLogin : false,
+    })
+    const [message, setMessage] = useState([{}])
+    const [userLogin, setUserLogin] = useState({
+        email: '',
+        password : '',
+    })
+
+    const [userRegister, setUserRegister] = useState({
+        name: '',
+        password : '',
+        email : '',
+        role : 'anggota'
+    })
+
+    const onHandleChange = (e) =>{
+        const {name, value} = e.target
+        setUserLogin(prevState =>({
+            ...prevState,
+            [name] : value
+        }))
+    }
+
+    const onHandleChange2 = (e) =>{
+        const {name, value} = e.target
+        setUserRegister(prevState =>({
+            ...prevState,
+            [name] : value
+        }))
+    }
+
+    const clearMessage = ()=>{
+        setTimeout(() => {
+            setMessage({})
+    },2000);
+    }
+
+    const clearLoginForm = ()=>{
+      setUserLogin({
+        email : "",
+        password : "",
+      })
+    }
+
+    const handlerLogin = (data)=>{
+        if(data.email === "" || data.password === ""){
+            clearMessage()
+            setMessage({
+                       message : <ErrorMessage message ={"Data ada yang belum diisi."} />
+                   })
+           return 
+       }
+       loginUser(data)
+       .then((res) =>{
+            if(res.length === 0){
+                setMessage({
+                    message : <ErrorMessage message ={"Email atau Password salah."} />
+                })
+            }else{
+                document.getElementById('modal-signin').checked = false;
+                clearMessage()
+                const newLogin = res[0]
+                newLogin.isLogin = true
+                setUserLoginData((prevState)=>({
+                  ...prevState,
+                  ...newLogin
+                }),
+                )
+                clearLoginForm()
+            }
+       })
+    }
+
+    const handlerRegister = (data)=>{
+        if(data.name === ""|| data.email === "" || data.password === ""){
+             clearMessage()
+             setMessage({
+                        message : <ErrorMessage message ={"Data ada yang belum diisi."} />
+                    })
+            return 
+        }
+        registerUser(data)
+        .then((res)=>{
+            if(res){
+                if(res.code === "23505"){
+                    setMessage({
+                        message : <ErrorMessage message ={"Email sudah dipakai"} />
+                    })
+                    clearMessage()
+                }
+                
+            }else{
+                setMessage({
+                    Code : "200",
+                    message : <BerhasilDaftar message={"Berhasil daftar"}/>
+                })
+                setUserRegister({})
+                clearMessage()
+                setIsSignIn(true)
+            }
+        })
+    }
+
+    const handleLogout = ()=>{
+      setUserLoginData((prevState)=>({
+        ...prevState,
+        ...tempUserLoginData
+      }))
+    }
+
+    
 
 
     return (
@@ -53,13 +178,92 @@ const Navbar = () => {
             
           </label>
         </div>
-        <div className='flex flex-row gap-2'>
-          <label htmlFor="modal-signin" className="btn btn-outline btn-accent">Sign in</label>
+        <div className="mx-3">
+            {userLoginData.name}
         </div>
-        <ButtonSign/>
+        <div className='flex flex-row gap-2'>
+          
+          {userLoginData.isLogin ? 
+          <button className="btn btn-outline btn-primary" onClick={()=>handleLogout()}>Logout</button>:
+          <label htmlFor="modal-signin" className="btn btn-outline btn-accent">Sign in</label>
+          }
+        </div>
+
+
+        {isSignIn ? <div>
+                <input type="checkbox" id="modal-signin" className="modal-toggle" />
+            <div className="modal modal-bottom sm:modal-middle">
+            <div className="modal-box">
+                {/* Alert Message */}
+                {message.message}
+                <h3 className="font-bold text-lg">Sign in</h3>
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Your Email</span>
+                    </label>
+                    <input type="email" name='email' value={userLogin.email} onChange={onHandleChange}  placeholder="Type your email here" className="input input-bordered w-full max-w-md" required/>
+                </div>
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Your Password</span>
+                    </label>
+                    <input type="password" name="password"  value={userLogin.password} onChange={onHandleChange} placeholder="Type your password here" className="input input-bordered w-full max-w-md" required/>
+                </div>
+                <div className='my-2'>
+                    <p>Not Registered?<button onClick={() => {
+                        setIsSignIn(false) 
+                        setMessage({})
+                    }} className="btn btn-link">Create account</button></p>
+                </div>
+                <div className="modal-action">
+                <button className='btn btn-accent' onClick={()=>handlerLogin(userLogin)}>Sign in</button>
+                <label htmlFor="modal-signin" className="btn">Close</label>
+                </div>
+            </div>
+            </div>
+            </div>: <div>
+                <input type="checkbox" id="modal-signin" className="modal-toggle" />
+            <div className="modal modal-bottom sm:modal-middle">
+            <div className="modal-box">
+                {/* Alert Message */}
+                {message.message}
+                
+                <h3 className="font-bold text-lg">Sign up</h3>
+                
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Your Name</span>
+                    </label>
+                    <input type="text" name='name' value={userRegister.name} onChange={onHandleChange2} placeholder="Type Your name" className="input input-bordered w-full max-w-md" />
+                </div>
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Your Email</span>
+                    </label>
+                    <input type="email" name='email' value={userRegister.email} onChange={onHandleChange2}  placeholder="Type your email here" className="input input-bordered w-full max-w-md" />
+                </div>
+                <div className="form-control">
+                    <label className="label">
+                        <span className="label-text">Your Password</span>
+                    </label>
+                    <input type="password" name='password' value={userRegister.password} onChange={onHandleChange2}  placeholder="Type your password here" className="input input-bordered w-full max-w-md" />
+                </div>
+                <div className='my-2'>
+                    <p>Registered?<button onClick={() => {
+                        setIsSignIn(true)
+                        setMessage({})
+                    }}  className="btn btn-link">Login Here</button></p>
+                </div>
+                <div className="modal-action">
+                <button className='btn btn-accent'  onClick={()=>handlerRegister(userRegister)}>Sign up</button>
+                <label htmlFor="modal-signin" className="btn">Close</label>
+                </div>
+            </div>
+            </div>
+            </div>}
       </div>
     </div>
     );
-};
+});
 
 export default Navbar;

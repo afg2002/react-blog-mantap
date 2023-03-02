@@ -12,6 +12,7 @@ const Main = () => {
         .then((data) =>{
             setPosts(data)
             setIsLoading(false)
+            
         }).catch((error)=>{
             console.log(error)
         })
