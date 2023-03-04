@@ -1,144 +1,111 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect, memo} from 'react';
 import { Link } from 'react-router-dom';
-import { view } from '@risingstack/react-easy-state';
-import { loginUser,registerUser } from '../lib/supabaseQuery';
-import { ErrorMessage, BerhasilDaftar } from './Message';
+import { Auth } from '@supabase/auth-ui-react';
+import {supabase as SupabaseClient} from '../lib/supabase'
+import {supabase, ThemeSupa } from '@supabase/auth-ui-shared';
+import { useNavigate } from 'react-router-dom';
+import { getUserProfile } from '../lib/supabaseQuery';
+import { ErrorMessage, SuccessMessage } from '../lib/Message';
+// import { getUserSession,getUserProfile, newUserProfile } from '../lib/supabaseQuery';
 
 
-const Navbar = view(() => {
+
+const Navbar = () => {
     const [theme, setTheme] = useState('light');
+    const [modalVal, setModalVal] = useState(true)
+    const [successMsg, setSucesssMsg]= useState(null)
+    const [errorMsg, setErrorMsg]= useState(null)
+    const [session , setSession] = useState(null)
+    const [login, setLogin] = useState({
+      email : '',
+      password : ''
+    })
+
+    const [register, setRegister] = useState({
+      email : '',
+      password : '',
+      name : '',
+      username : ''
+    })
+
     const toggleTheme = () => {
       setTheme(theme === 'dark' ? 'light' : 'dark');
     };
-    
-    useEffect(() => {
-      document.querySelector('html').setAttribute('data-theme', theme);
-    }, [theme]);
-    
-    // Modal
-    const [isSignIn, setIsSignIn] = useState(true)
 
-    const tempUserLoginData = {
-      email : '',
-      name : '',
-      isLogin : false,
-    }
-
-    const [userLoginData,setUserLoginData] = useState({
-      email : '',
-      name : '',
-      isLogin : false,
-    })
-    const [message, setMessage] = useState([{}])
-    const [userLogin, setUserLogin] = useState({
-        email: '',
-        password : '',
-    })
-
-    const [userRegister, setUserRegister] = useState({
-        name: '',
-        password : '',
-        email : '',
-        role : 'anggota'
-    })
-
-    const onHandleChange = (e) =>{
-        const {name, value} = e.target
-        setUserLogin(prevState =>({
-            ...prevState,
-            [name] : value
-        }))
-    }
-
-    const onHandleChange2 = (e) =>{
-        const {name, value} = e.target
-        setUserRegister(prevState =>({
-            ...prevState,
-            [name] : value
-        }))
-    }
-
-    const clearMessage = ()=>{
-        setTimeout(() => {
-            setMessage({})
-    },2000);
-    }
-
-    const clearLoginForm = ()=>{
-      setUserLogin({
-        email : "",
-        password : "",
-      })
-    }
-
-    const handlerLogin = (data)=>{
-        if(data.email === "" || data.password === ""){
-            clearMessage()
-            setMessage({
-                       message : <ErrorMessage message ={"Data ada yang belum diisi."} />
-                   })
-           return 
-       }
-       loginUser(data)
-       .then((res) =>{
-            if(res.length === 0){
-                setMessage({
-                    message : <ErrorMessage message ={"Email atau Password salah."} />
-                })
-            }else{
-                document.getElementById('modal-signin').checked = false;
-                clearMessage()
-                const newLogin = res[0]
-                newLogin.isLogin = true
-                setUserLoginData((prevState)=>({
-                  ...prevState,
-                  ...newLogin
-                }),
-                )
-                clearLoginForm()
-            }
-       })
-    }
-
-    const handlerRegister = (data)=>{
-        if(data.name === ""|| data.email === "" || data.password === ""){
-             clearMessage()
-             setMessage({
-                        message : <ErrorMessage message ={"Data ada yang belum diisi."} />
-                    })
-            return 
-        }
-        registerUser(data)
-        .then((res)=>{
-            if(res){
-                if(res.code === "23505"){
-                    setMessage({
-                        message : <ErrorMessage message ={"Email sudah dipakai"} />
-                    })
-                    clearMessage()
-                }
-                
-            }else{
-                setMessage({
-                    Code : "200",
-                    message : <BerhasilDaftar message={"Berhasil daftar"}/>
-                })
-                setUserRegister({})
-                clearMessage()
-                setIsSignIn(true)
-            }
-        })
-    }
-
-    const handleLogout = ()=>{
-      setUserLoginData((prevState)=>({
+    const handleLoginChange = (e) =>{
+      const {name, value} = e.target
+      setLogin((prevState) =>({
         ...prevState,
-        ...tempUserLoginData
+        [name] : value
       }))
     }
 
-    
+    const handleRegisterChange = (e) =>{
+      const {name, value} = e.target
+      setRegister((prevState) =>({
+        ...prevState,
+        [name] : value
+      }))
+    }
 
+    const clearForm = () =>{
+      setLogin({'email' : '', 'password' : ''})
+      setRegister({'email' : '', 'password' : '','name':'','username' : ''})
+      setTimeout(() => {
+        setErrorMsg(null)
+      }, 2000);
+    }
+
+    const handleLogout = ()=>{
+      SupabaseClient.auth.signOut()
+      setSession(null)
+    }
+    
+    const handleLogin = ()=>{
+        SupabaseClient.auth.signInWithPassword({
+          'email' : login.email,
+          'password' : login.password
+        }).then((data)=>{
+            setSession(data.data.session)
+            document.getElementById('modal-signin').checked = false;
+            clearForm()
+        })
+    }
+
+    const handlRegister = ()=>{
+        if(register.email == '' || register.password == '' || register.name == ''|| register.username ==''){
+          setErrorMsg('Isi data terlebih dahulu')
+          clearForm()
+          return
+        }
+
+        SupabaseClient.auth.signUp({
+          'email' : register.email,
+          'password' : register.password,
+          'options' : {
+            data : {
+              'name' : register.name,
+              'username' : register.username,
+            }
+          }
+        }).then(() =>{
+          setSucesssMsg('Daftar berhasil, silakan cek email anda.')
+          clearForm()
+        }).catch((e)=>{
+          console.log(e)
+        })
+    }
+
+    useEffect(() => {
+      document.querySelector('html').setAttribute('data-theme', theme);
+    }, [theme])
+
+    useEffect(()=>{
+      const ls  = localStorage.getItem('sb-tommwganypatxlngvfok-auth-token')
+      setSession(JSON.parse(ls))      
+    },[])
+
+    
 
     return (
     <div className="navbar bg-base-100 p-5">
@@ -178,92 +145,90 @@ const Navbar = view(() => {
             
           </label>
         </div>
+
+        
         <div className="mx-3">
-            {userLoginData.name}
+            {/* {session ? session.user.email : ''} */}
+            {session ? session.user.user_metadata.name : ''}
         </div>
         <div className='flex flex-row gap-2'>
-          
-          {userLoginData.isLogin ? 
-          <button className="btn btn-outline btn-primary" onClick={()=>handleLogout()}>Logout</button>:
-          <label htmlFor="modal-signin" className="btn btn-outline btn-accent">Sign in</label>
-          }
+          {!session ? <label htmlFor="modal-signin" className="btn btn-outline btn-accent">Sign in</label> : <button className='btn btn-accent' onClick={handleLogout}>Logout</button>}
         </div>
+            <div>
+                    <input type="checkbox" id="modal-signin" className="modal-toggle" />
+                <div className="modal modal-bottom sm:modal-middle">
+                  
+                  <div className="modal-box">
+                      {successMsg ? <SuccessMessage message={successMsg}/> : ''}
+                      {errorMsg ? <ErrorMessage message={errorMsg}/> : ''}
 
-
-        {isSignIn ? <div>
-                <input type="checkbox" id="modal-signin" className="modal-toggle" />
-            <div className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
-                {/* Alert Message */}
-                {message.message}
-                <h3 className="font-bold text-lg">Sign in</h3>
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Your Email</span>
-                    </label>
-                    <input type="email" name='email' value={userLogin.email} onChange={onHandleChange}  placeholder="Type your email here" className="input input-bordered w-full max-w-md" required/>
-                </div>
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Your Password</span>
-                    </label>
-                    <input type="password" name="password"  value={userLogin.password} onChange={onHandleChange} placeholder="Type your password here" className="input input-bordered w-full max-w-md" required/>
-                </div>
-                <div className='my-2'>
-                    <p>Not Registered?<button onClick={() => {
-                        setIsSignIn(false) 
-                        setMessage({})
-                    }} className="btn btn-link">Create account</button></p>
-                </div>
-                <div className="modal-action">
-                <button className='btn btn-accent' onClick={()=>handlerLogin(userLogin)}>Sign in</button>
-                <label htmlFor="modal-signin" className="btn">Close</label>
-                </div>
-            </div>
-            </div>
-            </div>: <div>
-                <input type="checkbox" id="modal-signin" className="modal-toggle" />
-            <div className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
-                {/* Alert Message */}
-                {message.message}
-                
-                <h3 className="font-bold text-lg">Sign up</h3>
-                
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Your Name</span>
-                    </label>
-                    <input type="text" name='name' value={userRegister.name} onChange={onHandleChange2} placeholder="Type Your name" className="input input-bordered w-full max-w-md" />
-                </div>
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Your Email</span>
-                    </label>
-                    <input type="email" name='email' value={userRegister.email} onChange={onHandleChange2}  placeholder="Type your email here" className="input input-bordered w-full max-w-md" />
-                </div>
-                <div className="form-control">
-                    <label className="label">
-                        <span className="label-text">Your Password</span>
-                    </label>
-                    <input type="password" name='password' value={userRegister.password} onChange={onHandleChange2}  placeholder="Type your password here" className="input input-bordered w-full max-w-md" />
-                </div>
-                <div className='my-2'>
-                    <p>Registered?<button onClick={() => {
-                        setIsSignIn(true)
-                        setMessage({})
-                    }}  className="btn btn-link">Login Here</button></p>
-                </div>
-                <div className="modal-action">
-                <button className='btn btn-accent'  onClick={()=>handlerRegister(userRegister)}>Sign up</button>
-                <label htmlFor="modal-signin" className="btn">Close</label>
+                      {modalVal ? <><h3 className="font-bold text-lg">Sign in</h3>
+                    <form onSubmit={(e)=>{e.preventDefault()}}>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Your Email</span>
+                        </label>
+                          <input type="text" name="email" placeholder="Your Email" value={login.email} onChange={handleLoginChange} className="input input-bordered w-full" />
+                      </div>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Your Password</span>
+                        </label>
+                          <input type="password" name="password" placeholder="Your Password" value={login.password} onChange={handleLoginChange} className="input input-bordered w-full" />
+                      </div>
+                      <div className='my-2'>
+                          <p>Not Registered?<button onClick={() => {
+                              setModalVal(false)
+                              clearForm()
+                          }} className="btn btn-link">Create account</button></p>
+                      </div>
+                      <div className="modal-action">
+                        <button className="btn btn-primary" onClick={handleLogin}>Login</button>
+                        <label htmlFor="modal-signin" className="btn">Close</label>
+                      </div>
+                    </form></> : <><h3 className="font-bold text-lg">Sign up</h3>
+                    <form onSubmit={(e)=>{e.preventDefault()}}>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Your Name</span>
+                        </label>
+                          <input type="text" name="name" placeholder="Your Name" value={register.name} onChange={handleRegisterChange} className="input input-bordered w-full" />
+                      </div>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Your Username</span>
+                        </label>
+                          <input type="text" name="username" placeholder="Your Username" value={register.username} onChange={handleRegisterChange} className="input input-bordered w-full" />
+                      </div>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Your Email</span>
+                        </label>
+                          <input type="text" name="email" placeholder="Your Email" value={register.email} onChange={handleRegisterChange} className="input input-bordered w-full" />
+                      </div>
+                      <div className="form-control">
+                        <label className="label">
+                          <span className="label-text">Your Password</span>
+                        </label>
+                          <input type="password" name="password" placeholder="Your Password" value={register.password} onChange={handleRegisterChange} className="input input-bordered w-full" />
+                      </div>
+                      <div className='my-2'>
+                          <p>Registered?<button onClick={() => {
+                              setModalVal(true)
+                              clearForm()
+                          }} className="btn btn-link">Login here</button></p>
+                      </div>
+                      <div className="modal-action">
+                        <button className="btn btn-primary" onClick={handlRegister}>Register</button>
+                        <label htmlFor="modal-signin" className="btn">Close</label>
+                      </div>
+                    </form></>}
+                  </div>
                 </div>
             </div>
-            </div>
-            </div>}
-      </div>
-    </div>
+        </div>
+        </div>
     );
-});
+};
 
-export default Navbar;
+export default memo(Navbar);
