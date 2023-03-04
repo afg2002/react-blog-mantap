@@ -1,10 +1,12 @@
-import React from 'react';
+import React,{useContext} from 'react';
+import ThemeContext from '../lib/ThemeContext'
+
+
 
 const Profile = () => {
+    const {theme} = useContext(ThemeContext)
     return (
-        <div className='container'>
-            test    
-        </div>
+        <>{theme}</>
     );
 };
 

@@ -1,4 +1,4 @@
-import React,{useState,useEffect, memo} from 'react';
+import React,{useState,useEffect, memo, useContext} from 'react';
 import { Link } from 'react-router-dom';
 import { Auth } from '@supabase/auth-ui-react';
 import {supabase as SupabaseClient} from '../lib/supabase'
@@ -6,12 +6,15 @@ import {supabase, ThemeSupa } from '@supabase/auth-ui-shared';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../lib/supabaseQuery';
 import { ErrorMessage, SuccessMessage } from '../lib/Message';
+import ThemeContext from '../lib/ThemeContext'
+import AuthContext from '../lib/AuthContext';
 // import { getUserSession,getUserProfile, newUserProfile } from '../lib/supabaseQuery';
 
 
 
 const Navbar = () => {
-    const [theme, setTheme] = useState('light');
+
+    const {auth, setAuth} = useContext(AuthContext)
     const [modalVal, setModalVal] = useState(true)
     const [successMsg, setSucesssMsg]= useState(null)
     const [errorMsg, setErrorMsg]= useState(null)
@@ -28,9 +31,7 @@ const Navbar = () => {
       username : ''
     })
 
-    const toggleTheme = () => {
-      setTheme(theme === 'dark' ? 'light' : 'dark');
-    };
+    const {theme,toggleTheme} = useContext(ThemeContext)
 
     const handleLoginChange = (e) =>{
       const {name, value} = e.target
@@ -61,25 +62,33 @@ const Navbar = () => {
       setSession(null)
     }
     
-    const handleLogin = ()=>{
-        SupabaseClient.auth.signInWithPassword({
+    const handleLogin = async ()=>{
+      let {data,error} = await SupabaseClient.auth.signInWithPassword({
           'email' : login.email,
           'password' : login.password
-        }).then((data)=>{
-            setSession(data.data.session)
-            document.getElementById('modal-signin').checked = false;
-            clearForm()
         })
+        if(data && (error != null || error != undefined)){
+          setErrorMsg(error.message)
+          clearForm()
+        }
+        if(data && error ==  null){
+          setSession(data.session)
+          document.getElementById('modal-signin').checked = false;
+          clearForm()
+          setAuth(true)
+        }
     }
+    
 
-    const handlRegister = ()=>{
+    const handlRegister = async ()=>{
         if(register.email == '' || register.password == '' || register.name == ''|| register.username ==''){
           setErrorMsg('Isi data terlebih dahulu')
           clearForm()
           return
         }
 
-        SupabaseClient.auth.signUp({
+       
+        let {data,error} = await SupabaseClient.auth.signUp({
           'email' : register.email,
           'password' : register.password,
           'options' : {
@@ -88,22 +97,42 @@ const Navbar = () => {
               'username' : register.username,
             }
           }
-        }).then(() =>{
-          setSucesssMsg('Daftar berhasil, silakan cek email anda.')
-          clearForm()
-        }).catch((e)=>{
-          console.log(e)
         })
+        
+        if(data.user != null){
+          console.log(data)
+          setModalVal(false)
+          clearForm()
+        }
+
+        if(data && (error != null || error != undefined)){
+          setErrorMsg(error.message)
+          clearForm()
+        }
+        if(data?.user?.identities?.length === 0){
+          setErrorMsg('Data udah ada.')
+          console.log(data)
+          setModalVal(false)
+        }
     }
 
     useEffect(() => {
       document.querySelector('html').setAttribute('data-theme', theme);
+      
     }, [theme])
 
     useEffect(()=>{
       const ls  = localStorage.getItem('sb-tommwganypatxlngvfok-auth-token')
-      setSession(JSON.parse(ls))      
+      if(ls){
+        setSession(JSON.parse(ls))
+        setAuth(true)
+        // console.log(auth)
+      }    
     },[])
+
+    useEffect(()=>{
+      console.log(auth)
+    },[auth])
 
     
 
@@ -149,7 +178,7 @@ const Navbar = () => {
         
         <div className="mx-3">
             {/* {session ? session.user.email : ''} */}
-            {session ? session.user.user_metadata.name : ''}
+            {session ? <Link to ={'/profile'}>{session.user.user_metadata.name}</Link> : ''}
         </div>
         <div className='flex flex-row gap-2'>
           {!session ? <label htmlFor="modal-signin" className="btn btn-outline btn-accent">Sign in</label> : <button className='btn btn-accent' onClick={handleLogout}>Logout</button>}
