@@ -22,13 +22,13 @@ export const getUserProfile = async (id)=>{
 export const getAllPosts = async () =>{
   const { data, error } = await supabase
     .from('posts')
-    .select('*, users(name)')
+    .select('*, users(raw_user_meta_data)')
   if (error) {
     throw new Error(error.message);
   }
-
   return data;
 }
+
 
 
 export const getPostsByCategory = async (category) =>{
@@ -42,3 +42,35 @@ export const getPostsByCategory = async (category) =>{
 
   return data;
 }
+
+
+export const setUserChanges = async (id,data) =>{
+  console.log(data)
+  const {user,error} = await supabase.auth.updateUser(
+    {
+      email : data.email,
+      data : {
+        name : data.name,
+        username : data.username,
+        avatar_url : data.avatar_url
+      }}
+    )
+    
+    if(error) throw new Error(error.message)
+    return user
+}
+
+// export const deleteAvatarsIfExist = async (url) =>{
+
+//   const { data, error } = await supabase
+//   .storage
+//   .deleteBucket(url)
+
+//   if(error) throw new Error(error.message)
+//   return data
+// }
+
+// export const setUserChangePub = async (id,d)=>{
+//   const {error} = await supabase.from('users').update(d).eq('id',id)
+//   if(error && error.message=='') throw new Error(error.message)
+// }

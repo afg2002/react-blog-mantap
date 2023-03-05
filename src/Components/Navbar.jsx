@@ -14,11 +14,10 @@ import AuthContext from '../lib/AuthContext';
 
 const Navbar = () => {
 
-    const {auth, setAuth} = useContext(AuthContext)
+    const {auth, setAuth,session,setSession} = useContext(AuthContext)
     const [modalVal, setModalVal] = useState(true)
     const [successMsg, setSucesssMsg]= useState(null)
     const [errorMsg, setErrorMsg]= useState(null)
-    const [session , setSession] = useState(null)
     const [login, setLogin] = useState({
       email : '',
       password : ''
@@ -95,25 +94,27 @@ const Navbar = () => {
             data : {
               'name' : register.name,
               'username' : register.username,
+              'avatar_url' : '',
             }
           }
         })
         
         if(data.user != null){
-          console.log(data)
+          // console.log(data)
           setModalVal(false)
+          setSucesssMsg('Berhasil daftar silakan cek email anda untuk validasi.')
           clearForm()
+          if(data.user.identities.length === 0){
+            setErrorMsg('Data udah ada.')
+            setModalVal(false)
+          }
         }
 
         if(data && (error != null || error != undefined)){
           setErrorMsg(error.message)
           clearForm()
         }
-        if(data?.user?.identities?.length === 0){
-          setErrorMsg('Data udah ada.')
-          console.log(data)
-          setModalVal(false)
-        }
+        
     }
 
     useEffect(() => {
@@ -126,14 +127,10 @@ const Navbar = () => {
       if(ls){
         setSession(JSON.parse(ls))
         setAuth(true)
-        // console.log(auth)
       }    
     },[])
 
-    useEffect(()=>{
-      console.log(auth)
-    },[auth])
-
+    
     
 
     return (

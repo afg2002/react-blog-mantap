@@ -3,10 +3,14 @@ import {Navigate, Outlet, Route} from 'react-router-dom'
 import AuthContext from './AuthContext'
 
 const PrivateRoutes = ()=>{
-    const {auth} = useContext(AuthContext)
+    const {auth,setAuth} = useContext(AuthContext)
     useEffect(()=>{
-        console.log(auth)
-    },[auth])
+        const ls  = localStorage.getItem('sb-tommwganypatxlngvfok-auth-token')
+        if(ls != null){
+          setAuth(true)
+          // console.log(auth)
+        }    
+      },[auth])
     return (
         <div>
             {auth == true ? <Outlet/> : <Navigate to='/'/> } 
